@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>リノ専用タイピングソフト</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #6a1b9a;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8e24aa;
+        }
+
+        .game-panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .game-panel.active {
+            display: block;
+        }
+
+        .difficulty-panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.easy {
+            background: #4caf50;
+            color: white;
+        }
+
+        .difficulty-btn.medium {
+            background: #ff9800;
+            color: white;
+        }
+
+        .difficulty-btn.hard {
+            background: #f44336;
+            color: white;
+        }
+
+        .difficulty-btn.selected {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .score-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .score-item.score {
+            color: #6a1b9a;
+        }
+
+        .score-item.correct {
+            color: #1976d2;
+        }
+
+        .lives-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .hearts {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            font-size: 1.5rem;
+            color: #e0e0e0;
+        }
+
+        .heart.active {
+            color: #e91e63;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6a1b9a;
+        }
+
+        .word-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .current-word {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #6a1b9a;
+            margin-bottom: 15px;
+        }
+
+        .instruction {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .romaji-display {
+            font-size: 2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .input-area {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .typing-input {
+            font-size: 2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            border: 4px solid #e0e0e0;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .typing-input.correct {
+            border-color: #4caf50;
+            background: #e8f5e8;
+        }
+
+        .typing-input.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .input-preview {
+            font-size: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin-top: 15px;
+            min-height: 2rem;
+        }
+
+        .preview-correct {
+            color: #4caf50;
+        }
+
+        .preview-wrong {
+            color: #f44336;
+        }
+
+        .preview-remaining {
+            color: #ccc;
+        }
+
+        .result-panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-panel.active {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #6a1b9a;
+            margin-bottom: 15px;
+        }
+
+        .result-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .stat-item.score-stat {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .stat-item.correct-stat {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .accuracy {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .control-buttons {
+            text-align: center;
+        }
+
+        .control-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .start-btn {
+            background: #6a1b9a;
+            color: white;
+        }
+
+        .start-btn:hover {
+            background: #4a148c;
+            transform: translateY(-2px);
+        }
+
+        .end-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .end-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .restart-btn {
+            background: #4caf50;
+            color: white;
+        }
+
+        .restart-btn:hover {
+            background: #388e3c;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .current-word {
+                font-size: 3rem;
+            }
+            
+            .typing-input {
+                font-size: 1.5rem;
+            }
+            
+            .difficulty-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .difficulty-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1 class="title">🎯 リノ専用タイピングソフト</h1>
+            <p class="subtitle">ひらがなをローマ字でタイピングしよう！</p>
+        </div>
+
+        <!-- 難易度選択パネル -->
+        <div class="difficulty-panel" id="difficultyPanel">
+            <h2 class="difficulty-title">難易度を選んでね</h2>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn easy selected" data-difficulty="easy">
+                    かんたん（あいうえお）
+                </button>
+                <button class="difficulty-btn medium" data-difficulty="medium">
+                    ふつう（たんご）
+                </button>
+                <button class="difficulty-btn hard" data-difficulty="hard">
+                    むずかしい（なが〜い）
+                </button>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div class="game-panel" id="gamePanel">
+            <!-- ステータスバー -->
+            <div class="status-bar">
+                <div class="score-group">
+                    <div class="score-item score">
+                        <span>⭐</span>
+                        <span id="scoreDisplay">0</span>
+                    </div>
+                    <div class="score-item correct">
+                        <span>🏆</span>
+                        <span id="correctDisplay">0</span>
+                    </div>
+                </div>
+                <div class="lives-group">
+                    <div class="hearts" id="heartsDisplay">
+                        <span class="heart active">❤️</span>
+                        <span class="heart active">❤️</span>
+                        <span class="heart active">❤️</span>
+                    </div>
+                    <div class="timer">
+                        ⏰ <span id="timerDisplay">60</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 問題表示 -->
+            <div class="word-display">
+                <div class="current-word" id="currentWord">あ</div>
+                <div class="instruction">↓ ローマ字で入力してね ↓</div>
+                <div class="romaji-display" id="romajiDisplay">a</div>
+            </div>
+
+            <!-- 入力エリア -->
+            <div class="input-area">
+                <input type="text" class="typing-input" id="typingInput" placeholder="ここにタイピング" autocomplete="off">
+                <div class="input-preview" id="inputPreview"></div>
+            </div>
+        </div>
+
+        <!-- 結果パネル -->
+        <div class="result-panel" id="resultPanel">
+            <h2 class="result-title" id="resultTitle">すばらしい！</h2>
+            <div class="result-emoji">🎉</div>
+            <div class="result-stats">
+                <div class="stat-item score-stat">
+                    <div class="stat-label">スコア</div>
+                    <div class="stat-value" id="finalScore">0</div>
+                </div>
+                <div class="stat-item correct-stat">
+                    <div class="stat-label">正解数</div>
+                    <div class="stat-value" id="finalCorrect">0</div>
+                </div>
+            </div>
+            <div class="accuracy" id="accuracyDisplay">正解率: 0%</div>
+        </div>
+
+        <!-- 操作ボタン -->
+        <div class="control-buttons">
+            <button class="control-btn start-btn" id="startBtn">
+                <span>▶️</span>
+                <span>ゲームスタート</span>
+            </button>
+            <button class="control-btn end-btn" id="endBtn" style="display: none;">
+                <span>⏸️</span>
+                <span>ゲーム終了</span>
+            </button>
+            <button class="control-btn restart-btn" id="restartBtn" style="display: none;">
+                <span>🔄</span>
+                <span>もう一度やる</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態
+        let gameState = {
+            currentWord: '',
+            romaji: '',
+            userInput: '',
+            score: 0,
+            lives: 3,
+            gameActive: false,
+            timeLeft: 60,
+            correctCount: 0,
+            wrongCount: 0,
+            difficulty: 'easy',
+            timer: null
+        };
+
+        // 単語リスト
+        const wordLists = {
+            easy: [
+                { hiragana: 'あ', romaji: 'a' },
+                { hiragana: 'い', romaji: 'i' },
+                { hiragana: 'う', romaji: 'u' },
+                { hiragana: 'え', romaji: 'e' },
+                { hiragana: 'お', romaji: 'o' },
+                { hiragana: 'か', romaji: 'ka' },
+                { hiragana: 'き', romaji: 'ki' },
+                { hiragana: 'く', romaji: 'ku' },
+                { hiragana: 'け', romaji: 'ke' },
+                { hiragana: 'こ', romaji: 'ko' },
+                { hiragana: 'さ', romaji: 'sa' },
+                { hiragana: 'し', romaji: 'shi' },
+                { hiragana: 'す', romaji: 'su' },
+                { hiragana: 'せ', romaji: 'se' },
+                { hiragana: 'そ', romaji: 'so' }
+            ],
+            medium: [
+                { hiragana: 'たまご', romaji: 'tamago' },
+                { hiragana: 'ねこ', romaji: 'neko' },
+                { hiragana: 'いぬ', romaji: 'inu' },
+                { hiragana: 'はな', romaji: 'hana' },
+                { hiragana: 'そら', romaji: 'sora' },
+                { hiragana: 'みず', romaji: 'mizu' },
+                { hiragana: 'やま', romaji: 'yama' },
+                { hiragana: 'うみ', romaji: 'umi' },
+                { hiragana: 'かわ', romaji: 'kawa' },
+                { hiragana: 'つき', romaji: 'tsuki' }
+            ],
+            hard: [
+                { hiragana: 'がっこう', romaji: 'gakkou' },
+                { hiragana: 'せんせい', romaji: 'sensei' },
+                { hiragana: 'ともだち', romaji: 'tomodachi' },
+                { hiragana: 'じてんしゃ', romaji: 'jitensha' },
+                { hiragana: 'でんしゃ', romaji: 'densha' },
+                { hiragana: 'ひこうき', romaji: 'hikouki' },
+                { hiragana: 'べんきょう', romaji: 'benkyou' },
+                { hiragana: 'しゅくだい', romaji: 'shukudai' },
+                { hiragana: 'としょかん', romaji: 'toshokan' },
+                { hiragana: 'びょういん', romaji: 'byouin' }
+            ]
+        };
+
+        // DOM要素を取得
+        const elements = {
+            difficultyPanel: document.getElementById('difficultyPanel'),
+            gamePanel: document.getElementById('gamePanel'),
+            resultPanel: document.getElementById('resultPanel'),
+            startBtn: document.getElementById('startBtn'),
+            endBtn: document.getElementById('endBtn'),
+            restartBtn: document.getElementById('restartBtn'),
+            typingInput: document.getElementById('typingInput'),
+            currentWord: document.getElementById('currentWord'),
+            romajiDisplay: document.getElementById('romajiDisplay'),
+            scoreDisplay: document.getElementById('scoreDisplay'),
+            correctDisplay: document.getElementById('correctDisplay'),
+            timerDisplay: document.getElementById('timerDisplay'),
+            heartsDisplay: document.getElementById('heartsDisplay'),
+            inputPreview: document.getElementById('inputPreview'),
+            resultTitle: document.getElementById('resultTitle'),
+            finalScore: document.getElementById('finalScore'),
+            finalCorrect: document.getElementById('finalCorrect'),
+            accuracyDisplay: document.getElementById('accuracyDisplay')
+        };
+
+        // 難易度選択
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                gameState.difficulty = btn.dataset.difficulty;
+            });
+        });
+
+        // 新しい単語を選択
+        function selectNewWord() {
+            const words = wordLists[gameState.difficulty];
+            const randomIndex = Math.floor(Math.random() * words.length);
+            const word = words[randomIndex];
+            gameState.currentWord = word.hiragana;
+            gameState.romaji = word.romaji;
+            gameState.userInput = '';
+            
+            elements.currentWord.textContent = gameState.currentWord;
+            elements.romajiDisplay.textContent = gameState.romaji;
+            elements.typingInput.value = '';
+            updateInputPreview();
+        }
+
+        // ゲーム開始
+        function startGame() {
+            gameState.gameActive = true;
+            gameState.score = 0;
+            gameState.lives = 3;
+            gameState.timeLeft = 60;
+            gameState.correctCount = 0;
+            gameState.wrongCount = 0;
+            
+            elements.difficultyPanel.style.display = 'none';
+            elements.gamePanel.classList.add('active');
+            elements.resultPanel.classList.remove('active');
+            elements.startBtn.style.display = 'none';
+            elements.endBtn.style.display = 'inline-flex';
+            elements.restartBtn.style.display = 'none';
+            
+            selectNewWord();
+            updateDisplay();
+            elements.typingInput.focus();
+            
+            // タイマー開始
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                updateDisplay();
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // ゲーム終了
+        function endGame() {
+            gameState.gameActive = false;
+            clearInterval(gameState.timer);
+            
+            elements.gamePanel.classList.remove('active');
+            elements.resultPanel.classList.add('active');
+            elements.endBtn.style.display = 'none';
+            elements.restartBtn.style.display = 'inline-flex';
+            
+            showResult();
+        }
+
+        // 結果表示
+        function showResult() {
+            const accuracy = gameState.correctCount + gameState.wrongCount > 0 
+                ? Math.round((gameState.correctCount / (gameState.correctCount + gameState.wrongCount)) * 100) 
+                : 0;
+            
+            let message = 'つぎはもっとがんばろう！';
+            if (accuracy >= 80) message = 'すばらしい！';
+            else if (accuracy >= 60) message = 'がんばりました！';
+            
+            elements.resultTitle.textContent = message;
+            elements.finalScore.textContent = gameState.score;
+            elements.finalCorrect.textContent = gameState.correctCount;
+            elements.accuracyDisplay.textContent = `正解率: ${accuracy}%`;
+        }
+
+        // 画面更新
+        function updateDisplay() {
+            elements.scoreDisplay.textContent = gameState.score;
+            elements.correctDisplay.textContent = gameState.correctCount;
+            elements.timerDisplay.textContent = gameState.timeLeft;
+            
+            // ハート表示更新
+            const hearts = elements.heartsDisplay.querySelectorAll('.heart');
+            hearts.forEach((heart, index) => {
+                heart.className = index < gameState.lives ? 'heart active' : 'heart';
+            });
+        }
+
+        // 入力プレビュー更新
+        function updateInputPreview() {
+            const input = gameState.userInput.toLowerCase();
+            const target = gameState.romaji;
+            let preview = '';
+            
+            for (let i = 0; i < Math.max(input.length, target.length); i++) {
+                if (i < input.length) {
+                    if (i < target.length && input[i] === target[i]) {
+                        preview += `<span class="preview-correct">${input[i]}</span>`;
+                    } else {
+                        preview += `<span class="preview-wrong">${input[i]}</span>`;
+                    }
+                } else {
+                    preview += `<span class="preview-remaining">${target[i]}</span>`;
+                }
+            }
+            
+            elements.inputPreview.innerHTML = preview;
+        }
+
+        // 入力チェック
+        function checkInput() {
+            const input = gameState.userInput.toLowerCase();
+            const target = gameState.romaji;
+            
+            if (input === target) {
+                // 正解
+                gameState.score += 10;
+                gameState.correctCount++;
+                selectNewWord();
+                updateDisplay();
+            } else if (input.length > target.length) {
+                // 間違い
+                gameState.lives--;
+                gameState.wrongCount++;
+                gameState.userInput = '';
+                elements.typingInput.value = '';
+                updateInputPreview();
+                updateDisplay();
+                
+                if (gameState.lives <= 0) {
+                    endGame();
+                }
+            }
+        }
+
+        // 入力状態の視覚フィードバック
+        function updateInputStyle() {
+            const input = gameState.userInput.toLowerCase();
+            const target = gameState.romaji;
+            
+            if (input === '') {
+                elements.typingInput.className = 'typing-input';
+            } else if (target.startsWith(input)) {
+                elements.typingInput.className = 'typing-input correct';
+            } else {
+                elements.typingInput.className = 'typing-input wrong';
+            }
+        }
+
+        // イベントリスナー
+        elements.startBtn.addEventListener('click', startGame);
+        elements.endBtn.addEventListener('click', endGame);
+        elements.restartBtn.addEventListener('click', () => {
+            elements.resultPanel.classList.remove('active');
+            elements.difficultyPanel.style.display = 'block';
+            elements.startBtn.style.display = 'inline-flex';
+            elements.restartBtn.style.display = 'none';
+        });
+
+        elements.typingInput.addEventListener('input', (e) => {
+            if (!gameState.gameActive) return;
+            
+            gameState.userInput = e.target.value;
+            updateInputPreview();
+            updateInputStyle();
+            checkInput();
+        });
+
+        // 初期化
+        selectNewWord();
+        updateDisplay();
+    </script>
+</body>
+</html>
